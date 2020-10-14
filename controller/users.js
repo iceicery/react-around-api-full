@@ -1,5 +1,6 @@
 const { StatusCodes, getReasonPhrase } = require('http-status-codes');
 const User = require('../models/user');
+const bcrypt = require('bcrypt');
 
 const getUsersData = (req, res) => {
   User.find({})
@@ -28,8 +29,8 @@ const getOneUser = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  const user = new User({ name, about, avatar });
+  const { name, about, avatar, email, password } = req.body;
+  const user = new User({ name, about, avatar, email, password });
   user.save().then((userData) => res.status(StatusCodes.OK).send({ data: userData }))
     .catch((err) => {
       if (err.name === 'ValidationError') {

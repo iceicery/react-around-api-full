@@ -1,6 +1,7 @@
-const { StatusCodes, getReasonPhrase } = require('http-status-codes');
+const { StatusCodes, getReasonPhrase, UNAUTHORIZED } = require('http-status-codes');
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const getUsersData = (req, res) => {
   User.find({})
@@ -84,7 +85,25 @@ const updateAvatar = (req, res) => {
     });
 };
 
+const login = (req, res) => {
+  const { email, password } = req.body;
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        'some-key',
+        {
+          expiresIn: '7d',
+          httpOnly: true,
+        })
+      res.send({ token });
+    })
+    .catch((err) => {
+      res.status(StatusCodes.UNAUTHORIZED).send({ message: getReasonPhrase(StatusCodes.UNAUTHORIZED) })
+    })
+
+}
 
 module.exports = {
-  getUsersData, getOneUser, createUser, updateProfile, updateAvatar,
+  getUsersData, getOneUser, createUser, updateProfile, updateAvatar, login,
 };

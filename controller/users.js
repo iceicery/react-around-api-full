@@ -30,16 +30,19 @@ const getOneUser = (req, res) => {
 
 const createUser = (req, res) => {
   const { name, about, avatar, email, password } = req.body;
-  const user = new User({ name, about, avatar, email, password });
-  user.save().then((userData) => res.status(StatusCodes.OK).send({ data: userData }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res.status(StatusCodes.BAD_REQUEST)
-          .send({ message: getReasonPhrase(StatusCodes.BAD_REQUEST) });
-      }
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .send({ message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) });
-    });
+  bcrypt.hash(password, 10)
+    .then((hash) => {
+      const user = new User({ name, about, avatar, email, hash });
+      user.save().then((userData) => res.status(StatusCodes.OK).send({ data: userData }))
+        .catch((err) => {
+          if (err.name === 'ValidationError') {
+            return res.status(StatusCodes.BAD_REQUEST)
+              .send({ message: getReasonPhrase(StatusCodes.BAD_REQUEST) });
+          }
+          return res.status(StatusCodes.INTERNAL_SERVER_ERROR)
+            .send({ message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) });
+        })
+    })
 };
 
 const updateProfile = (req, res) => {
@@ -80,6 +83,7 @@ const updateAvatar = (req, res) => {
         .send({ message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) });
     });
 };
+
 
 module.exports = {
   getUsersData, getOneUser, createUser, updateProfile, updateAvatar,

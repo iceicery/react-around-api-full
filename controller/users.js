@@ -33,7 +33,7 @@ const createUser = (req, res) => {
   const { name, about, avatar, email, password } = req.body;
   bcrypt.hash(password, 10)
     .then((hash) => {
-      const user = new User({ name, about, avatar, email, hash });
+      const user = new User({ name: name, about: about, avatar: avatar, email: email, password: hash });
       user.save().then((userData) => res.status(StatusCodes.OK).send({ data: userData }))
         .catch((err) => {
           console.log(err);

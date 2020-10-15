@@ -17,7 +17,7 @@ const getUsersData = (req, res) => {
 };
 
 const getOneUser = (req, res) => {
-  User.findById(req.params.cardId)
+  User.findById(req.params.userId)
     .then((user) => res.status(StatusCodes.OK).send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {

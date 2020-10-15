@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const validatorpkg = require('validator');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -33,14 +34,14 @@ const userSchema = new mongoose.Schema({
       validator(v) {
         return validatorpkg.isEmail(v);
       },
-      message: 'please enter an email.'
-    }
+      message: 'please enter an email.',
+    },
   },
   password: {
     type: String,
     required: true,
     select: false,
-  }
+  },
 });
 
 userSchema.statics.findUserByCredentials = function (email, password) {

@@ -12,14 +12,13 @@ const auth = (req, res, next) => {
   let payload;
   try {
     payload = jwt.verify(token, 'some-key');
-  }
-  catch (err) {
+  } catch (err) {
     return res
       .status(StatusCodes.UNAUTHORIZED)
-      .send({ message: getReasonPhrase(StatusCodes.UNAUTHORIZED) })
+      .send({ message: getReasonPhrase(StatusCodes.UNAUTHORIZED) });
   }
   req.user = payload;
   next();
-}
+};
 
 module.exports = auth;

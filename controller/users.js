@@ -1,7 +1,7 @@
 const { StatusCodes, getReasonPhrase } = require('http-status-codes');
-const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const User = require('../models/user');
 
 const getUsersData = (req, res) => {
   User.find({})
@@ -30,21 +30,32 @@ const getOneUser = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, about, avatar, email, password } = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
   bcrypt.hash(password, 10)
     .then((hash) => {
-      const user = new User({ name: name, about: about, avatar: avatar, email: email, password: hash });
+      const user = new User({
+        name,
+        about,
+        avatar,
+        email,
+        password: hash,
+      });
       user.save().then((userData) => res.status(StatusCodes.OK).send({ data: userData }))
         .catch((err) => {
-          console.log(err);
           if (err.name === 'ValidationError') {
             return res.status(StatusCodes.BAD_REQUEST)
               .send({ message: getReasonPhrase(StatusCodes.BAD_REQUEST) });
           }
+          if (err.code === 11000) {
+            return res.status(StatusCodes.BAD_REQUEST)
+              .send({ message: 'User email already exists.' });
+          }
           return res.status(StatusCodes.INTERNAL_SERVER_ERROR)
             .send({ message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) });
-        })
-    })
+        });
+    });
 };
 
 const updateProfile = (req, res) => {
@@ -95,15 +106,16 @@ const login = (req, res) => {
         'some-key',
         {
           expiresIn: '7d',
-          httpOnly: true,
-        })
+        },
+      );
       res.send({ token });
     })
     .catch((err) => {
-      res.status(StatusCodes.UNAUTHORIZED).send({ message: getReasonPhrase(StatusCodes.UNAUTHORIZED) })
-    })
-
-}
+      res
+        .status(StatusCodes.UNAUTHORIZED)
+        .send({ message: getReasonPhrase(StatusCodes.UNAUTHORIZED) });
+    });
+};
 
 module.exports = {
   getUsersData, getOneUser, createUser, updateProfile, updateAvatar, login,

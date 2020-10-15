@@ -4,7 +4,8 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
-const { login, createUser } = require('./controller/users')
+const { login, createUser } = require('./controller/users');
+const auth = require('./middleware/auth');
 
 mongoose.connect('mongodb://localhost:27017/aroundb', {
   useNewUrlParser: true,
@@ -14,20 +15,11 @@ mongoose.connect('mongodb://localhost:27017/aroundb', {
 });
 const app = express();
 const { PORT = 3000 } = process.env;
-//Temporary Authorization Solution
-app.use((req, res, next) => {
-  req.user = {
-    _id: '5f643404e41c1173b0f24d05',
-  };
-
-  next();
-});
 app.use(bodyParser.json());
-app.use('/', usersRouter);
-app.post('/signin', login);
 app.post('/signup', createUser);
-app.use('/', cardsRouter);
-
+app.post('/signin', login);
+app.use('/', auth, usersRouter);
+app.use('/', auth, cardsRouter);
 app.use((req, res) => {
   res.status(StatusCodes.NOT_FOUND)
     .send({ message: 'Requested resource not found' });

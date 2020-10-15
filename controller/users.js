@@ -1,4 +1,4 @@
-const { StatusCodes, getReasonPhrase, UNAUTHORIZED } = require('http-status-codes');
+const { StatusCodes, getReasonPhrase } = require('http-status-codes');
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -36,6 +36,7 @@ const createUser = (req, res) => {
       const user = new User({ name, about, avatar, email, hash });
       user.save().then((userData) => res.status(StatusCodes.OK).send({ data: userData }))
         .catch((err) => {
+          console.log(err);
           if (err.name === 'ValidationError') {
             return res.status(StatusCodes.BAD_REQUEST)
               .send({ message: getReasonPhrase(StatusCodes.BAD_REQUEST) });

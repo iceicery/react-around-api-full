@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
+const { login, createUser } = require('./controller/users')
 
 mongoose.connect('mongodb://localhost:27017/aroundb', {
   useNewUrlParser: true,
@@ -23,6 +24,8 @@ app.use((req, res, next) => {
 });
 app.use(bodyParser.json());
 app.use('/', usersRouter);
+app.post('/signin', login);
+app.post('/signup', createUser);
 app.use('/', cardsRouter);
 
 app.use((req, res) => {

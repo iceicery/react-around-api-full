@@ -1,35 +1,34 @@
 const { StatusCodes, getReasonPhrase } = require('http-status-codes');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const BadRequestError = require('../errors/bad-request-err');
+const NotFoundError = require('../errors/not-found-err');
+const UnAuthorizedError = require('../errors/unauthorized-err');
 const User = require('../models/user');
 
-const getUsersData = (req, res) => {
+const getUsersData = (req, res, next) => {
   User.find({})
-    .then((user) => res.status(StatusCodes.OK).send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res.status(StatusCodes.NOT_FOUND)
-          .send({ message: getReasonPhrase(StatusCodes.NOT_FOUND) });
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Data not found');
       }
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .send({ message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) });
-    });
+      res.status(StatusCodes.OK).send({ data: user });
+    })
+    .catch(next);
 };
 
-const getOneUser = (req, res) => {
+const getOneUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .then((user) => res.status(StatusCodes.OK).send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res.status(StatusCodes.NOT_FOUND)
-          .send({ message: 'User not found' });
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('No user with matching ID found');
       }
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .send({ message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) });
-    });
+      res.status(StatusCodes.OK).send({ data: user });
+    })
+    .catch(next);
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -42,23 +41,24 @@ const createUser = (req, res) => {
         email,
         password: hash,
       });
-      user.save().then((userData) => res.status(StatusCodes.OK).send({ data: userData }))
+      user.save().then((userData) => {
+        res.status(StatusCodes.OK).send({ data: userData });
+      })
         .catch((err) => {
           if (err.name === 'ValidationError') {
             return res.status(StatusCodes.BAD_REQUEST)
               .send({ message: getReasonPhrase(StatusCodes.BAD_REQUEST) });
           }
-          if (err.code === 11000) {
+          if (err.name === 'MongoError') {
             return res.status(StatusCodes.BAD_REQUEST)
               .send({ message: 'User email already exists.' });
           }
-          return res.status(StatusCodes.INTERNAL_SERVER_ERROR)
-            .send({ message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) });
+          next(err);
         });
     });
 };
 
-const updateProfile = (req, res) => {
+const updateProfile = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id,
     {
       name: 'newName',
@@ -74,8 +74,7 @@ const updateProfile = (req, res) => {
         return res.status(StatusCodes.BAD_REQUEST)
           .send({ message: getReasonPhrase(StatusCodes.BAD_REQUEST) });
       }
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .send({ message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) });
+      next(err);
     });
 };
 

@@ -18,8 +18,9 @@ const { PORT = 3000 } = process.env;
 app.use(bodyParser.json());
 app.post('/signup', createUser);
 app.post('/signin', login);
-app.use('/', auth, usersRouter);
-app.use('/', auth, cardsRouter);
+app.use(auth);
+app.use('/', usersRouter);
+app.use('/', cardsRouter);
 app.use((req, res) => {
   res.status(StatusCodes.NOT_FOUND)
     .send({ message: 'Requested resource not found' });

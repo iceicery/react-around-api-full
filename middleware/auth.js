@@ -2,6 +2,7 @@ const { StatusCodes, getReasonPhrase } = require('http-status-codes');
 const jwt = require('jsonwebtoken');
 
 const auth = (req, res, next) => {
+  console.log(req.headers);
   const { authorization } = req.headers;
   if (!authorization || !authorization.startsWith('Bearer')) {
     return res

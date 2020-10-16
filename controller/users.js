@@ -42,6 +42,9 @@ const createUser = (req, res, next) => {
         password: hash,
       });
       user.save().then((userData) => {
+        if (!userData) {
+          throw new BadRequestError(getReasonPhrase(StatusCodes.BAD_REQUEST));
+        }
         res.status(StatusCodes.OK).send({ data: userData });
       })
         .catch((err) => {
@@ -51,7 +54,7 @@ const createUser = (req, res, next) => {
           }
           if (err.name === 'MongoError') {
             return res.status(StatusCodes.BAD_REQUEST)
-              .send({ message: 'User email already exists.' });
+              .send({ message: getReasonPhrase(StatusCodes.BAD_REQUEST) });
           }
           next(err);
         });
@@ -68,7 +71,13 @@ const updateProfile = (req, res, next) => {
       new: true,
       runValidators: true,
       upsert: true,
-    }).then((user) => res.status(StatusCodes.OK).send({ data: user }))
+    })
+    .then((user) => {
+      if (!user) {
+        throw new BadRequestError(getReasonPhrase(StatusCodes.BAD_REQUEST));
+      }
+      res.status(StatusCodes.OK).send({ data: user });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(StatusCodes.BAD_REQUEST)
@@ -78,28 +87,36 @@ const updateProfile = (req, res, next) => {
     });
 };
 
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id,
     { avatar: 'https://www.NEWLINK.jpg' },
     {
       new: true,
       runValidators: true,
       upsert: true,
-    }).then((user) => res.status(StatusCodes.OK).send({ data: user }))
+    })
+    .then((user) => {
+      if (!user) {
+        throw new BadRequestError(getReasonPhrase(StatusCodes.BAD_REQUEST));
+      }
+      res.status(StatusCodes.OK).send({ data: user });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(StatusCodes.BAD_REQUEST)
           .send({ message: getReasonPhrase(StatusCodes.BAD_REQUEST) });
       }
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .send({ message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) });
+      next(err);
     });
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then((user) => {
+      if (!user) {
+        throw new UnAuthorizedError('Incorrect email or password');
+      }
       const token = jwt.sign(
         { _id: user._id },
         'some-key',
@@ -110,9 +127,12 @@ const login = (req, res) => {
       res.send({ token });
     })
     .catch((err) => {
-      res
-        .status(StatusCodes.UNAUTHORIZED)
-        .send({ message: getReasonPhrase(StatusCodes.UNAUTHORIZED) });
+      if (err.name === 'Error') {
+        res
+          .status(StatusCodes.UNAUTHORIZED)
+          .send({ message: getReasonPhrase(StatusCodes.UNAUTHORIZED) });
+      }
+      next(err);
     });
 };
 

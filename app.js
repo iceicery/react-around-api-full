@@ -7,7 +7,6 @@ const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 const { login, createUser } = require('./controller/users');
 const auth = require('./middleware/auth');
-const { validateUser } = require('./middleware/validateData');
 
 mongoose.connect('mongodb://localhost:27017/aroundb', {
   useNewUrlParser: true,
@@ -27,7 +26,12 @@ app.post('/signup', celebrate({
     password: Joi.string().required(),
   }),
 }), createUser);
-app.post('/signin', login);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+}), login);
 app.use('/', auth, usersRouter);
 app.use('/', auth, cardsRouter);
 app.use((req, res) => {

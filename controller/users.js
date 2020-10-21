@@ -129,9 +129,10 @@ const login = (req, res, next) => {
       if (!user) {
         throw new UnAuthorizedError('Incorrect email or password');
       }
+      const secretKeyDev = '916cd609990dec8e0bd7827cb0844d44487643c8d4101b80d2c6cbb34440af6c';
       const token = jwt.sign(
         { _id: user._id },
-        'some-key',
+        secretKeyDev,
         {
           expiresIn: '7d',
         },

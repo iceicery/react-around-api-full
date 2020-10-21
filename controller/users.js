@@ -14,7 +14,13 @@ const getUsersData = (req, res, next) => {
       }
       res.status(StatusCodes.OK).send({ data: user });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(StatusCodes.NOT_FOUND)
+          .send({ message: 'Data not found' });
+      }
+      next(err);
+    });
 };
 
 const getOneUser = (req, res, next) => {
@@ -25,7 +31,13 @@ const getOneUser = (req, res, next) => {
       }
       res.status(StatusCodes.OK).send({ data: user });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(StatusCodes.NOT_FOUND)
+          .send({ message: 'No user with matching ID found' });
+      }
+      next(err);
+    });
 };
 
 const createUser = (req, res, next) => {
@@ -130,7 +142,7 @@ const login = (req, res, next) => {
       if (err.name === 'Error') {
         res
           .status(StatusCodes.UNAUTHORIZED)
-          .send({ message: getReasonPhrase(StatusCodes.UNAUTHORIZED) });
+          .send({ message: 'Incorrect email or password' });
       }
       next(err);
     });

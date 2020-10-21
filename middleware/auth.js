@@ -1,5 +1,6 @@
 const { StatusCodes, getReasonPhrase } = require('http-status-codes');
 const jwt = require('jsonwebtoken');
+const UnAuthorizedError = require('../errors/unauthorized-err');
 
 const auth = (req, res, next) => {
   const { authorization } = req.headers;
@@ -13,9 +14,8 @@ const auth = (req, res, next) => {
   try {
     payload = jwt.verify(token, 'some-key');
   } catch (err) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .send({ message: getReasonPhrase(StatusCodes.UNAUTHORIZED) });
+    const error = new UnAuthorizedError('Authorization required');
+    next(error);
   }
   req.user = payload;
   next();

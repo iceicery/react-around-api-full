@@ -17,10 +17,7 @@ mongoose.connect('mongodb://localhost:27017/aroundb', {
 const app = express();
 const { PORT = 3000 } = process.env;
 app.use(bodyParser.json());
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  next();
-});
+app.use('Access-Control-Allow-Origin':'*');
 app.get('/crash-test', () => {
   setTimeout(() => {
     throw new Error('Server will crash now');

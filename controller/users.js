@@ -72,6 +72,22 @@ const createUser = (req, res, next) => {
         });
     });
 };
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        throw new BadRequestError(getReasonPhrase(StatusCodes.BAD_REQUEST));
+      }
+      res.status(StatusCodes.OK).send({ data: user });
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return res.status(StatusCodes.BAD_REQUEST)
+          .send({ message: getReasonPhrase(StatusCodes.BAD_REQUEST) });
+      }
+      next(err);
+    });
+};
 
 const updateProfile = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id,
@@ -150,5 +166,5 @@ const login = (req, res, next) => {
 };
 
 module.exports = {
-  getUsersData, getOneUser, createUser, updateProfile, updateAvatar, login,
+  getUsersData, getOneUser, createUser, getCurrentUser, updateProfile, updateAvatar, login,
 };

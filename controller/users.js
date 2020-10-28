@@ -41,15 +41,13 @@ const getOneUser = (req, res, next) => {
 };
 
 const createUser = (req, res, next) => {
-  const {
-    name, about, avatar, email, password,
-  } = req.body;
+  const { email, password } = req.body;
   bcrypt.hash(password, 10)
     .then((hash) => {
       const user = new User({
-        name,
-        about,
-        avatar,
+        name: "Edit Name",
+        about: "Edit About",
+        avatar: "http://addImgLink.com",
         email,
         password: hash,
       });

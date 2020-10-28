@@ -92,8 +92,8 @@ const getCurrentUser = (req, res, next) => {
 const updateProfile = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id,
     {
-      name: 'newName',
-      about: 'newAbout',
+      name: req.body.name,
+      about: req.body.about,
     },
     {
       new: true,
@@ -117,7 +117,7 @@ const updateProfile = (req, res, next) => {
 
 const updateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id,
-    { avatar: 'https://www.NEWLINK.jpg' },
+    { avatar: req.body.avatar },
     {
       new: true,
       runValidators: true,
